@@ -1,0 +1,28 @@
+name: Fixture boundary
+on: [push]
+permissions:
+  contents: read
+jobs:
+  fixture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - name: Validate public-safe case selectors
+        run: |
+          python3 - <<'PYCODE'
+          import json
+          from pathlib import Path
+          cases = json.loads(Path("cases.json").read_text())
+          assert cases == [{"case": "passing-pr", "expectedExit": 0}, {"case": "blocked-pr", "expectedExit": 1}, {"case": "invalid-facts", "expectedExit": 2}]
+          print("Three harmless case selectors verified; no private runtime supplied")
+          PYCODE
+      - name: Private source access must be denied to this repository token
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          status=$(curl --silent --show-error --output "$RUNNER_TEMP/private-access.json" --write-out '%{http_code}' --header "Authorization: Bearer $GH_TOKEN" --header 'Accept: application/vnd.github+json' https://api.github.com/repos/outfitter-dev/forge)
+          test "$status" = 404
+          echo "Private Forge access denied to fixture repository token (404)"

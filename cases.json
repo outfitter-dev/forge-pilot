@@ -1,0 +1,14 @@
+[
+  {
+    "case": "passing-pr",
+    "expectedExit": 0
+  },
+  {
+    "case": "blocked-pr",
+    "expectedExit": 1
+  },
+  {
+    "case": "invalid-facts",
+    "expectedExit": 2
+  }
+]
